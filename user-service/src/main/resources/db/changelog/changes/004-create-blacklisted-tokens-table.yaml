@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-blacklisted-tokens-table
+      author: phankien
+      changes:
+        - createTable:
+            tableName: blacklisted_tokens
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: token
+                  type: TEXT
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: expires_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_blacklisted_tokens_token
+            tableName: blacklisted_tokens
+            columns:
+              - column:
+                  name: token
+        - createIndex:
+            indexName: idx_blacklisted_tokens_expires_at
+            tableName: blacklisted_tokens
+            columns:
+              - column:
+                  name: expires_at
+      rollback:
+        - dropIndex:
+            indexName: idx_blacklisted_tokens_expires_at
+            tableName: blacklisted_tokens
+        - dropIndex:
+            indexName: idx_blacklisted_tokens_token
+            tableName: blacklisted_tokens
+        - dropTable:
+            tableName: blacklisted_tokens

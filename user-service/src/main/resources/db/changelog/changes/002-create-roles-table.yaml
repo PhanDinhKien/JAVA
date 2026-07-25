@@ -1,0 +1,87 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-roles-table
+      author: phankien
+      changes:
+        - createTable:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: role_name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: display_name
+                  type: JSONB
+              - column:
+                  name: description
+                  type: JSONB
+              - column:
+                  name: is_default
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_system
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: priority
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMP
+        - createIndex:
+            indexName: idx_roles_role_name
+            tableName: roles
+            columns:
+              - column:
+                  name: role_name
+        - createIndex:
+            indexName: idx_roles_is_default
+            tableName: roles
+            columns:
+              - column:
+                  name: is_default
+        - createIndex:
+            indexName: idx_roles_deleted_at
+            tableName: roles
+            columns:
+              - column:
+                  name: deleted_at
+      rollback:
+        - dropIndex:
+            indexName: idx_roles_deleted_at
+            tableName: roles
+        - dropIndex:
+            indexName: idx_roles_is_default
+            tableName: roles
+        - dropIndex:
+            indexName: idx_roles_role_name
+            tableName: roles
+        - dropTable:
+            tableName: roles

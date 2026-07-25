@@ -1,0 +1,119 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-users-table
+      author: phankien
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: email_verified_at
+                  type: TIMESTAMP
+              - column:
+                  name: name
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: phone_number
+                  type: VARCHAR(20)
+              - column:
+                  name: address
+                  type: VARCHAR(500)
+              - column:
+                  name: avatar
+                  type: VARCHAR(500)
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: "active"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: token_version
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: two_factor_enabled
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_password_change
+                  type: TIMESTAMP
+              - column:
+                  name: last_login_at
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMP
+        - createIndex:
+            indexName: idx_users_email
+            tableName: users
+            columns:
+              - column:
+                  name: email
+        - createIndex:
+            indexName: idx_users_name
+            tableName: users
+            columns:
+              - column:
+                  name: name
+        - createIndex:
+            indexName: idx_users_status
+            tableName: users
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_users_deleted_at
+            tableName: users
+            columns:
+              - column:
+                  name: deleted_at
+      rollback:
+        - dropIndex:
+            indexName: idx_users_deleted_at
+            tableName: users
+        - dropIndex:
+            indexName: idx_users_status
+            tableName: users
+        - dropIndex:
+            indexName: idx_users_name
+            tableName: users
+        - dropIndex:
+            indexName: idx_users_email
+            tableName: users
+        - dropTable:
+            tableName: users

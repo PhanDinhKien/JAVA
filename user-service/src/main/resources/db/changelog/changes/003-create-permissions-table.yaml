@@ -1,0 +1,93 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-permissions-table
+      author: phankien
+      changes:
+        - createTable:
+            tableName: permissions
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: permission_key
+                  type: VARCHAR(250)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: name
+                  type: JSONB
+              - column:
+                  name: description
+                  type: JSONB
+              - column:
+                  name: module_group
+                  type: VARCHAR(100)
+              - column:
+                  name: service_code
+                  type: VARCHAR(100)
+              - column:
+                  name: action
+                  type: VARCHAR(100)
+              - column:
+                  name: scope
+                  type: VARCHAR(50)
+              - column:
+                  name: parent_permission_id
+                  type: UUID
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_permissions_permission_key
+            tableName: permissions
+            columns:
+              - column:
+                  name: permission_key
+        - createIndex:
+            indexName: idx_permissions_module_group
+            tableName: permissions
+            columns:
+              - column:
+                  name: module_group
+        - createIndex:
+            indexName: idx_permissions_service_code
+            tableName: permissions
+            columns:
+              - column:
+                  name: service_code
+        - addForeignKeyConstraint:
+            baseTableName: permissions
+            baseColumnNames: parent_permission_id
+            referencedTableName: permissions
+            referencedColumnNames: id
+            constraintName: fk_permissions_parent
+            onDelete: SET NULL
+      rollback:
+        - dropAllForeignKeyConstraints:
+            baseTableName: permissions
+        - dropIndex:
+            indexName: idx_permissions_service_code
+            tableName: permissions
+        - dropIndex:
+            indexName: idx_permissions_module_group
+            tableName: permissions
+        - dropIndex:
+            indexName: idx_permissions_permission_key
+            tableName: permissions
+        - dropTable:
+            tableName: permissions

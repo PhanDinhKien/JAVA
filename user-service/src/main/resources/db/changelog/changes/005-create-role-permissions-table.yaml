@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-role-permissions-table
+      author: phankien
+      changes:
+        - createTable:
+            tableName: role_permissions
+            columns:
+              - column:
+                  name: role_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: permission_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: role_permissions
+            columnNames: role_id, permission_id
+            constraintName: pk_role_permissions
+        - addForeignKeyConstraint:
+            baseTableName: role_permissions
+            baseColumnNames: role_id
+            referencedTableName: roles
+            referencedColumnNames: id
+            constraintName: fk_role_permissions_role
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: role_permissions
+            baseColumnNames: permission_id
+            referencedTableName: permissions
+            referencedColumnNames: id
+            constraintName: fk_role_permissions_permission
+            onDelete: CASCADE
+        - createIndex:
+            indexName: idx_role_permissions_role_id
+            tableName: role_permissions
+            columns:
+              - column:
+                  name: role_id
+        - createIndex:
+            indexName: idx_role_permissions_permission_id
+            tableName: role_permissions
+            columns:
+              - column:
+                  name: permission_id
+      rollback:
+        - dropIndex:
+            indexName: idx_role_permissions_permission_id
+            tableName: role_permissions
+        - dropIndex:
+            indexName: idx_role_permissions_role_id
+            tableName: role_permissions
+        - dropTable:
+            tableName: role_permissions
