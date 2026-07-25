@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.microservice.grpc.user";
+option java_outer_classname = "UserProto";
+
+package user;
+
+// Service gRPC để lấy thông tin User
+service UserProtoService {
+  // Lấy thông tin user theo ID
+  rpc GetUserById (UserIdRequest) returns (UserResponse);
+
+  // Kiểm tra user có tồn tại không
+  rpc CheckUserExists (UserIdRequest) returns (UserExistsResponse);
+}
+
+// Request - truyền user ID
+message UserIdRequest {
+  string user_id = 1;
+}
+
+// Response - thông tin user
+message UserResponse {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string phone_number = 4;
+  string status = 5;
+  bool found = 6;
+}
+
+// Response - kiểm tra user tồn tại
+message UserExistsResponse {
+  bool exists = 1;
+}
