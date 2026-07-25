@@ -2,6 +2,7 @@ package com.microservice.orderservice.service;
 
 import com.microservice.orderservice.dto.CreateOrderRequest;
 import com.microservice.orderservice.dto.OrderDto;
+import com.microservice.orderservice.exception.ServiceUnavailableException;
 import com.microservice.orderservice.grpc.UserGrpcClient;
 import com.microservice.orderservice.model.Order;
 import com.microservice.orderservice.repository.OrderRepository;
@@ -22,17 +23,31 @@ public class OrderService {
     private final UserGrpcClient userGrpcClient;
 
     /**
-     * Tạo đơn hàng mới
-     * 1. Kiểm tra user tồn tại qua gRPC
-     * 2. Lưu order vào DB
-     * 3. Lấy thông tin user qua gRPC để trả về response
+     * Tạo đơn hàng mới - với Graceful Degradation
+     *
+     * Kịch bản:
+     * 1. user-service SỐNG → validate user → tạo order (có userInfo)
+     * 2. user-service CHẾT → bỏ qua validate → VẪN tạo order (không có userInfo)
+     *    → Log warning để xử lý sau
      */
     @Transactional
     public OrderDto createOrder(CreateOrderRequest request) {
-        // Bước 1: Kiểm tra user có tồn tại không (gọi gRPC)
-        boolean userExists = userGrpcClient.checkUserExists(request.getUserId().toString());
-        if (!userExists) {
-            throw new RuntimeException("User not found with id: " + request.getUserId());
+        boolean userValidated = false;
+
+        try {
+            // Bước 1: Kiểm tra user có tồn tại không (gọi gRPC)
+            boolean userExists = userGrpcClient.checkUserExists(request.getUserId().toString());
+            if (!userExists) {
+                // User thật sự KHÔNG tồn tại (service trả lời rõ ràng)
+                throw new RuntimeException("User not found with id: " + request.getUserId());
+            }
+            userValidated = true;
+        } catch (ServiceUnavailableException e) {
+            // user-service CHẾT → graceful degradation
+            // Vẫn tạo order, nhưng log warning để xử lý sau
+            log.warn("⚠️ GRACEFUL DEGRADATION: user-service không khả dụng. " +
+                    "Tạo order mà KHÔNG validate userId: {}. Lý do: {}",
+                    request.getUserId(), e.getMessage());
         }
 
         // Bước 2: Tạo và lưu order
@@ -44,7 +59,14 @@ public class OrderService {
                 .build();
 
         Order savedOrder = orderRepository.save(order);
-        log.info("Order created: {} for user: {}", savedOrder.getId(), request.getUserId());
+
+        if (userValidated) {
+            log.info("✅ Order created (validated): {} for user: {}",
+                    savedOrder.getId(), request.getUserId());
+        } else {
+            log.warn("⚠️ Order created (NOT validated): {} for user: {}",
+                    savedOrder.getId(), request.getUserId());
+        }
 
         // Bước 3: Lấy thông tin user qua gRPC để enrich response
         return toDto(savedOrder);
@@ -80,10 +102,12 @@ public class OrderService {
     }
 
     /**
-     * Convert Order entity → OrderDto (kèm gọi gRPC lấy user info)
+     * Convert Order entity → OrderDto
+     * Graceful: nếu gRPC lỗi → trả order không kèm userInfo (thay vì crash)
      */
     private OrderDto toDto(Order order) {
         // Gọi gRPC để lấy thông tin user
+        // Nếu user-service chết → getUserById fallback trả null → userInfo = null
         OrderDto.UserInfo userInfo = userGrpcClient.getUserById(order.getUserId().toString());
 
         return OrderDto.builder()
