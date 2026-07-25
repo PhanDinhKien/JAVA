@@ -34,6 +34,18 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- RabbitMQ (AMQP) - Event-driven communication -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        <!-- Liquibase - Database Migration -->
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+
         <!-- Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -121,5 +133,23 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Liquibase Maven Plugin — chạy migrate thủ công -->
+            <!-- Lệnh: .\mvnw.cmd liquibase:update -pl order-service -->
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <configuration>
+                    <changeLogFile>src/main/resources/db/changelog/db.changelog-master.yaml</changeLogFile>
+                    <url>jdbc:postgresql://localhost:5433/order_db</url>
+                    <username>postgres</username>
+                    <password>postgres123</password>
+                    <driver>org.postgresql.Driver</driver>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

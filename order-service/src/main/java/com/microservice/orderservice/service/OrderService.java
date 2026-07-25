@@ -2,6 +2,7 @@ package com.microservice.orderservice.service;
 
 import com.microservice.orderservice.dto.CreateOrderRequest;
 import com.microservice.orderservice.dto.OrderDto;
+import com.microservice.orderservice.event.OrderEventPublisher;
 import com.microservice.orderservice.exception.ServiceUnavailableException;
 import com.microservice.orderservice.grpc.UserGrpcClient;
 import com.microservice.orderservice.model.Order;
@@ -21,6 +22,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final UserGrpcClient userGrpcClient;
+    private final OrderEventPublisher orderEventPublisher;
 
     /**
      * Tạo đơn hàng mới - với Graceful Degradation
@@ -68,7 +70,10 @@ public class OrderService {
                     savedOrder.getId(), request.getUserId());
         }
 
-        // Bước 3: Lấy thông tin user qua gRPC để enrich response
+        // Bước 3: Publish event đến RabbitMQ (async, non-blocking)
+        orderEventPublisher.publishOrderCreated(savedOrder);
+
+        // Bước 4: Lấy thông tin user qua gRPC để enrich response
         return toDto(savedOrder);
     }
 

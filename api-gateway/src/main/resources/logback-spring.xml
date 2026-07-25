@@ -31,9 +31,11 @@
         <appender-ref ref="KAFKA"/>
     </root>
 
-    <logger name="org.springframework.cloud.gateway" level="INFO"/>
+    <logger name="org.springframework.cloud.gateway" level="WARN"/>
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="com.netflix" level="WARN"/>
+    <logger name="org.springframework.cloud" level="WARN"/>
 
     <logger name="com.microservice.gateway" level="DEBUG"/>
 </configuration>

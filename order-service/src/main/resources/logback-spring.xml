@@ -35,6 +35,8 @@
     <logger name="org.hibernate" level="WARN"/>
     <logger name="io.grpc" level="WARN"/>
     <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="com.netflix" level="WARN"/>
+    <logger name="org.springframework.cloud" level="WARN"/>
 
     <logger name="com.microservice.orderservice" level="DEBUG"/>
 </configuration>

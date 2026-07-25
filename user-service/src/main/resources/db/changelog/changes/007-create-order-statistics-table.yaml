@@ -1,0 +1,63 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-create-order-statistics-table
+      author: phankien
+      comment: >
+        Bảng thống kê đơn hàng của user.
+        Được cập nhật tự động qua RabbitMQ event từ order-service.
+      changes:
+        - createTable:
+            tableName: order_statistics
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: total_orders
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_spending
+                  type: NUMERIC(15,2)
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_order_at
+                  type: TIMESTAMP
+              - column:
+                  name: last_product_name
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+        - createIndex:
+            indexName: idx_order_statistics_user_id
+            tableName: order_statistics
+            columns:
+              - column:
+                  name: user_id
+      rollback:
+        - dropIndex:
+            indexName: idx_order_statistics_user_id
+            tableName: order_statistics
+        - dropTable:
+            tableName: order_statistics

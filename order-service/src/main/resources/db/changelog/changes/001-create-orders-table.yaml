@@ -1,0 +1,82 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-orders-table
+      author: phankien
+      comment: >
+        Bảng đơn hàng chính của order-service.
+      changes:
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: product_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_price
+                  type: NUMERIC(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  defaultValue: "pending"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+        - createIndex:
+            indexName: idx_orders_user_id
+            tableName: orders
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_orders_status
+            tableName: orders
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_orders_created_at
+            tableName: orders
+            columns:
+              - column:
+                  name: created_at
+      rollback:
+        - dropIndex:
+            indexName: idx_orders_created_at
+            tableName: orders
+        - dropIndex:
+            indexName: idx_orders_status
+            tableName: orders
+        - dropIndex:
+            indexName: idx_orders_user_id
+            tableName: orders
+        - dropTable:
+            tableName: orders
