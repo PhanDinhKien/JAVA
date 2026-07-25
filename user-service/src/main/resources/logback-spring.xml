@@ -9,29 +9,43 @@
         </encoder>
     </appender>
 
-    <!-- Logstash TCP Appender (gửi JSON logs đến Logstash) -->
-    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>localhost:5044</destination>
+    <!--
+        Kafka Appender - gửi JSON log đến Kafka topic
+        Luồng: log.info() → KafkaAppender → Kafka topic "microservice-logs"
+                                                → Logstash consume → Elasticsearch
+        Ưu điểm so với TCP trực tiếp:
+        - Kafka buffer log trên disk (retention 7 ngày)
+        - ES/Logstash chết → log vẫn an toàn trong Kafka
+        - ES sống lại → Logstash replay từ Kafka → không mất log
+    -->
+    <appender name="KAFKA" class="com.github.danielwegener.logback.kafka.KafkaAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <customFields>{"service_name":"${appName}"}</customFields>
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
         </encoder>
-        <!-- Reconnect nếu Logstash chưa sẵn sàng -->
-        <reconnectionDelay>5 seconds</reconnectionDelay>
-        <keepAliveDuration>5 minutes</keepAliveDuration>
+        <topic>microservice-logs</topic>
+        <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy"/>
+        <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy"/>
+        <producerConfig>bootstrap.servers=localhost:29092</producerConfig>
+        <producerConfig>acks=0</producerConfig>
+        <producerConfig>linger.ms=100</producerConfig>
+        <producerConfig>buffer.memory=4194304</producerConfig>
+        <!-- Fallback: nếu Kafka chết → log ra console (không mất hoàn toàn) -->
+        <appender-ref ref="CONSOLE"/>
     </appender>
 
     <!-- Root Logger -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="LOGSTASH"/>
+        <appender-ref ref="KAFKA"/>
     </root>
 
     <!-- Giảm noise từ framework logs -->
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>
     <logger name="io.grpc" level="WARN"/>
+    <logger name="org.apache.kafka" level="WARN"/>
 
     <!-- App logs ở level DEBUG -->
     <logger name="com.microservice.userservice" level="DEBUG"/>

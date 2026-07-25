@@ -9,26 +9,32 @@
         </encoder>
     </appender>
 
-    <!-- Logstash TCP Appender -->
-    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>localhost:5044</destination>
+    <!-- Kafka Appender - gửi JSON log đến Kafka topic -->
+    <appender name="KAFKA" class="com.github.danielwegener.logback.kafka.KafkaAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <customFields>{"service_name":"${appName}"}</customFields>
             <includeMdcKeyName>traceId</includeMdcKeyName>
             <includeMdcKeyName>spanId</includeMdcKeyName>
         </encoder>
-        <reconnectionDelay>5 seconds</reconnectionDelay>
-        <keepAliveDuration>5 minutes</keepAliveDuration>
+        <topic>microservice-logs</topic>
+        <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy"/>
+        <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy"/>
+        <producerConfig>bootstrap.servers=localhost:29092</producerConfig>
+        <producerConfig>acks=0</producerConfig>
+        <producerConfig>linger.ms=100</producerConfig>
+        <producerConfig>buffer.memory=4194304</producerConfig>
+        <appender-ref ref="CONSOLE"/>
     </appender>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="LOGSTASH"/>
+        <appender-ref ref="KAFKA"/>
     </root>
 
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>
     <logger name="io.grpc" level="WARN"/>
+    <logger name="org.apache.kafka" level="WARN"/>
 
     <logger name="com.microservice.orderservice" level="DEBUG"/>
 </configuration>

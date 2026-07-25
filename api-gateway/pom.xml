@@ -34,6 +34,17 @@
             <artifactId>logstash-logback-encoder</artifactId>
             <version>8.1</version>
         </dependency>
+
+        <!-- Kafka Appender - gửi log từ Logback đến Kafka -->
+        <dependency>
+            <groupId>com.github.danielwegener</groupId>
+            <artifactId>logback-kafka-appender</artifactId>
+            <version>0.2.0-RC2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
