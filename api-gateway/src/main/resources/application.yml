@@ -84,10 +84,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,prometheus,metrics
   endpoint:
     gateway:
       enabled: true
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: api-gateway
 
 logging:
   level:

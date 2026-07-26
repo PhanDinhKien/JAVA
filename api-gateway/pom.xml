@@ -28,6 +28,13 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Micrometer Prometheus — expose metrics cho Prometheus scrape -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Logstash Logback Encoder (ELK) -->
         <dependency>
             <groupId>net.logstash.logback</groupId>

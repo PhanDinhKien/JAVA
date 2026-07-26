@@ -149,6 +149,43 @@ services:
     networks:
       - microservice-network
 
+  # ==================== Prometheus (Metrics Collection) ====================
+
+  prometheus:
+    image: prom/prometheus:v3.4.1
+    container_name: microservice-prometheus
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9093:9090"
+    networks:
+      - microservice-network
+
+  # ==================== Grafana (Metrics Visualization) ====================
+
+  grafana:
+    image: grafana/grafana:12.1.0
+    container_name: microservice-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - microservice-network
+
 volumes:
   microservice_postgres_data:
     driver: local
@@ -157,6 +194,10 @@ volumes:
   kafka_data:
     driver: local
   rabbitmq_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
 
 networks:
