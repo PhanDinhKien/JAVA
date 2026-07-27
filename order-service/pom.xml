@@ -10,9 +10,9 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>user-service</artifactId>
-    <name>User Service</name>
-    <description>User Management Microservice</description>
+    <artifactId>order-service</artifactId>
+    <name>Order Service</name>
+    <description>Order Management Microservice with gRPC Client</description>
 
     <dependencies>
         <!-- Spring Boot Web -->
@@ -40,6 +40,12 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
+        <!-- Liquibase - Database Migration -->
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+
         <!-- Eureka Client -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -65,42 +71,34 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!-- Liquibase Migration -->
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-        </dependency>
-
-        <!-- Spring Security -->
+        <!-- gRPC Client (Spring Boot 4.1 native) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
+            <artifactId>spring-boot-starter-grpc-client</artifactId>
         </dependency>
 
-        <!-- JWT (jjwt) -->
+        <!-- Shared gRPC Proto -->
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-api</artifactId>
-            <version>0.12.6</version>
+            <groupId>com.microservice</groupId>
+            <artifactId>grpc-proto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Resilience4j - Circuit Breaker, Retry, TimeLimiter -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-spring-boot3</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
+        <!-- AOP - Resilience4j cần AOP để intercept method calls qua annotation -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-impl</artifactId>
-            <version>0.12.6</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId>
-            <version>0.12.6</version>
-            <scope>runtime</scope>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
         </dependency>
 
         <!-- Swagger / OpenAPI -->
@@ -128,17 +126,11 @@
             <artifactId>kafka-clients</artifactId>
         </dependency>
 
-        <!-- gRPC Server (Spring Boot 4.1 native) -->
+        <!-- Lombok -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-grpc-server</artifactId>
-        </dependency>
-
-        <!-- Shared gRPC Proto -->
-        <dependency>
-            <groupId>com.microservice</groupId>
-            <artifactId>grpc-proto</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- Test -->
@@ -151,24 +143,18 @@
 
     <build>
         <plugins>
+            <!-- Liquibase Maven Plugin — chạy migrate thủ công -->
+            <!-- Lệnh: .\mvnw.cmd liquibase:update -pl order-service -->
             <plugin>
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <configuration>
-                    <changeLogFile>db/changelog/db.changelog-master.yaml</changeLogFile>
-                    <searchPath>${project.basedir}/src/main/resources</searchPath>
-                    <url>jdbc:postgresql://localhost:5433/microservice_db</url>
+                    <changeLogFile>src/main/resources/db/changelog/db.changelog-master.yaml</changeLogFile>
+                    <url>jdbc:postgresql://localhost:5433/order_db</url>
                     <username>postgres</username>
                     <password>postgres123</password>
                     <driver>org.postgresql.Driver</driver>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>${postgresql.version}</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>

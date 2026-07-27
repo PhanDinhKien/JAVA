@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/changes/005-create-role-permissions-table.yaml
   - include:
       file: db/changelog/changes/006-create-user-roles-table.yaml
+  - include:
+      file: db/changelog/changes/007-create-order-statistics-table.yaml

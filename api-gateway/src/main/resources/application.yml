@@ -6,6 +6,20 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      # CORS Configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: false
       server:
         webflux:
           routes:
@@ -21,15 +35,39 @@ spring:
               uri: lb://user-service
               predicates:
                 - Path=/api/students/**
-            # Swagger proxy - truy cập Swagger của user-service qua gateway
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - Path=/api/orders/**
+
+            # Swagger proxy - user-service (UI + api-docs)
             - id: user-service-swagger-ui
               uri: lb://user-service
               predicates:
-                - Path=/swagger-ui/**,/swagger-ui.html
+                - Path=/user-service/swagger-ui/**
+              filters:
+                - RewritePath=/user-service(?<segment>.*), ${segment}
             - id: user-service-api-docs
               uri: lb://user-service
               predicates:
-                - Path=/v3/api-docs/**
+                - Path=/user-service/v3/api-docs/**
+              filters:
+                - RewritePath=/user-service(?<segment>.*), ${segment}
+
+            # Swagger proxy - order-service (UI + api-docs)
+            - id: order-service-swagger-ui
+              uri: lb://order-service
+              predicates:
+                - Path=/order-service/swagger-ui/**
+              filters:
+                - RewritePath=/order-service(?<segment>.*), ${segment}
+            - id: order-service-api-docs
+              uri: lb://order-service
+              predicates:
+                - Path=/order-service/v3/api-docs/**
+              filters:
+                - RewritePath=/order-service(?<segment>.*), ${segment}
+
       discovery:
         locator:
           enabled: true
@@ -46,10 +84,15 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,prometheus,metrics
   endpoint:
     gateway:
       enabled: true
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: api-gateway
 
 logging:
   level:

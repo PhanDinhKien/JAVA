@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: user-service
+  grpc:
+    server:
+      port: 9091
   datasource:
     url: jdbc:postgresql://localhost:5433/microservice_db
     username: postgres
@@ -17,6 +20,12 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+  # RabbitMQ
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
   liquibase:
     enabled: false
     change-log: classpath:db/changelog/db.changelog-master.yaml
@@ -34,7 +43,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: user-service
 
 # JWT Configuration
 jwt:

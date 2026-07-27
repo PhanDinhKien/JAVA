@@ -1,0 +1,90 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: jdbc:postgresql://localhost:5433/order_db
+    username: postgres
+    password: postgres123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  # Liquibase - Database Migration
+  liquibase:
+    enabled: false
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  # RabbitMQ
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+# gRPC client - kết nối đến user-service gRPC server
+grpc:
+  client:
+    user-service:
+      host: localhost
+      port: 9091
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: order-service
+  health:
+    circuitbreakers:
+      enabled: true
+
+# ═══════════════════════════════════════════════════
+# Resilience4j Configuration
+# ═══════════════════════════════════════════════════
+resilience4j:
+  # Circuit Breaker: "Cầu dao" ngắt mạch khi service lỗi liên tục
+  circuitbreaker:
+    instances:
+      userService:
+        register-health-indicator: true
+        sliding-window-size: 10                # Theo dõi 10 request gần nhất
+        failure-rate-threshold: 50             # Mở circuit khi >= 50% request lỗi
+        wait-duration-in-open-state:
+          seconds: 30                          # Chờ 30s rồi thử lại (HALF_OPEN)
+        permitted-number-of-calls-in-half-open-state: 3  # Thử 3 request khi HALF_OPEN
+        minimum-number-of-calls: 5             # Tối thiểu 5 calls mới bắt đầu tính
+        slow-call-duration-threshold:
+          seconds: 3                           # Call > 3s coi là "chậm"
+        slow-call-rate-threshold: 80           # Mở circuit khi >= 80% call chậm
+
+  # Retry: Tự động thử lại khi gặp lỗi tạm thời
+  retry:
+    instances:
+      userService:
+        max-attempts: 3                        # Thử tối đa 3 lần
+        wait-duration:
+          millis: 500                          # Chờ 500ms giữa các lần thử
+        retry-exceptions:                      # Chỉ retry với các exception này
+          - io.grpc.StatusRuntimeException
+          - java.util.concurrent.TimeoutException

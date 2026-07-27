@@ -21,7 +21,9 @@
     <modules>
         <module>discovery-server</module>
         <module>api-gateway</module>
+        <module>grpc-proto</module>
         <module>user-service</module>
+        <module>order-service</module>
     </modules>
 
     <properties>
@@ -38,6 +40,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
